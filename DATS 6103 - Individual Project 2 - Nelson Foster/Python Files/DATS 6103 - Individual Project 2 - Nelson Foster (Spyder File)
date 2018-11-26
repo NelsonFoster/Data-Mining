@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 21 11:00:04 2017
+
+@author: nfoster06
+"""
+# Ecological Footprint of Countries (EFC) and 
+#Environmental Vulnerability Index(EVI), 2004
+#DATS 6103 – Individual Project 2 – Nelson Foster
+#loading libraries
+import requests
+import plotly.plotly as py
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import string as str
+import statistics as stat
+import plotly.figure_factory as ff
+import plotly.graph_objs as go
+%matplotlib inline
+
+plt.rcParams['figure.figsize'] = (8, 6)
+plt.rcParams['font.size'] = 14
+
+#loading the file and checking values
+
+EVI = pd.read_excel('EVI_04.xls')
+EFC = pd.read_excel('EFC_04.xls')
+EVI.head()
+EFC.head()
+EVI.head().values
+EFC.head().values
+
+list(EVI)
+
+#looking at the data types
+EVI.dtypes
+EFC.dtypes
+
+
+
+#converting NaNs to zeros
+
+EVI.fillna(0, inplace=True)
+EFC.fillna(0, inplace=True)
+
+#Exploratory Data Analysis (EDA): Environmental Vunerability Index (EVI)
+
+list(EVI)
+
+
+#Identifying the nations ranked as extremely vulnerable
+
+
+
+EVI_subset = EVI[EVI.EVI >= 365]
+
+EVI_subset
+
+#Overall Extremely Vulnerable Nations 
+
+EVI_summary = EVI_subset.groupby(['Country Code'])['EVI'].mean()
+
+EVI_summary
+
+
+#Analyses of Key Aggregate Variables: Climate Change Sub-Index, 
+#Biodiversity Sub-Index, & Conflict Subindex
+
+Aggregates = EVI_subset.groupby(['Country Code'])['CCEVI', 'CBDEVI', 
+                               'CONFLTEVI',].mean()
+Aggregates
+
+#Analyses of Overall Population Density versus Costal Population Density
+
+
+PopDensity = EVI_subset.groupby(['Country Code'])['CSTPOP', 'POPDN'].mean()
+
+PopDensity
+
+
+#Comparison of key EVI subindexes: Hazards, Prior Damage, Sea Temperatures
+#Population Density, & Coastal Population Density
+
+KeyEVI = EVI_subset.groupby(['Country Code'])['HAZARDS', 'DAMAGE', 'SSTEVI',
+                           'POPDNEVI', 'CSTPOPEVI'].mean()
+
+KeyEVI
+
+#Now, onto analyzing the Ecological Footpriont of Countries (Per Capita)
+
+#Looking at summary statistics to determine how to best subset the EFC data
+
+EFC.describe()
+
+#subsetting based on estimated median to identify natiosn with the largest
+#ecological footprint
+
+EFC_subset = EFC[EFC.Total >= 7]
+
+
+EFC_subset
+
+EFC_summary = EFC_subset.groupby(['Country Name']) ['Total'].mean()
+
+EFC_summary
+
+#analysis of key EFC Variables
+
+KeyEFC = EFC_subset.groupby(['Country Name']) ['Built-up Land', 'Carbon',
+                           'Cropland', 'Fishing Grounds', 'Forest Products', 
+                           'Grazing Land'].mean()
+
+KeyEFC
+
+#Analysis of Carbon Footprint Per Capita Variable 
+
+
+CarbonEFC = EFC.groupby(['Country Name']) ['Carbon'].mean()
+CarbonEFC
+
+
+#top per capita carbon footprint 
+
+CarbonEFC_sort =  CarbonEFC.nlargest(20)
+CarbonEFC_sort
+
+
+         
+
+#And now, for some plots, using preselected styles
+
+
+plt.style.use('ggplot')
+plt.style.use('fivethirtyeight')
+
+#Histograms of Carbon EFC
+
+CarbonEFC_sort.plot(kind='hist', bins=10, title='Carbon Footprint')
+plt.xlabel('Country')
+plt.ylabel('Per Capita Carbon Footprint')
+plt.savefig('Carbon_histogram.png')
+
+#distributions
+sns.distplot(CarbonEFC)
+sns.distplot(EFC_summary)
+sns.distplot(EVI_summary)
+sns.distplot(CCsub)
+sns.distplot(CBsub)
+sns.distplot(Conflict)
+
+
+#barcharts for EVI
+
+pd.Series(EVI_summary).plot(kind='barh', title='Environmental Vulnerability Index')
+
+
+#barcharts for EFC
+pd.Series(CarbonEFC_sort).plot(kind='barh', title='Carbon')
+pd.Series(EFC_summary).plot(kind='barh', title='Overall Ecological Footprint')
+
+
+#barcharts for Aggregate SubIndexes
+
+
+CCsub = EVI_subset.groupby(['Country Code'])['CCEVI'].mean()
+CCsub.sort_values(ascending=True)
+
+CBsub = EVI_subset.groupby(['Country Code'])['CBDEVI'].mean()
+CBsub.sort_values(ascending=True)
+
+Conflict = EVI_subset.groupby(['Country Code'])['CONFLTEVI'].mean()
+Conflict.sort_values(ascending=True)
+
+pd.Series(CCsub).plot(kind='barh', title='Climate Change Sub-Index')
+pd.Series(CBsub).plot(kind='barh', title='Biodiversity Sub-Index')
+pd.Series(Conflict).plot(kind='barh', title='Conflict Years Sub-Index')
+
+
+
