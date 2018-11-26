@@ -1,0 +1,270 @@
+
+# coding: utf-8
+
+# In[30]:
+
+#Load Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import display
+import seaborn as sns
+import string
+
+
+pd.set_option('max_columns', 50)
+plt.rcParams['lines.linewidth'] = 2
+
+get_ipython().magic('matplotlib inline')
+
+
+# In[31]:
+
+#Loading "Military Spending" excel file
+
+MS = pd.read_excel('MilSpnd.xls')
+
+
+# In[32]:
+
+#Loading GDP Data
+
+GDP = pd.read_excel('GDP.xls')
+
+
+# In[33]:
+
+#looking at the data types
+MS.dtypes
+
+
+# In[34]:
+
+#describe the data
+MS.describe()
+
+
+# In[35]:
+
+#creating dataframe of G20 Member Nations 
+G20 = (MS.loc[MS['Country Name'].isin(['Argentina' , 'Australia' , 'Brazil', 'Canada' , 
+                                       'China' , 'France' , 'Germany' , 'India' , 'Indonesia' , 
+                                       'Italy', 'Japan',  'Korea, Rep.' , 'Mexico' , 'Russian Federation' , 'Saudi Arabia' , 
+                                       'South Africa' , 'Turkey' , 'United Kingdom' , 'United States' , 'European Union'])])
+           
+
+
+# In[36]:
+
+G20
+
+
+# In[37]:
+
+#looking at the head of G20 dataframe
+G20.head()
+
+
+# In[38]:
+
+#Looking at the tail of the G20 dataframe
+G20.tail()
+
+
+# In[39]:
+
+#delete unneeded columns
+G20.drop(['Indicator Code', 'Indicator Name' , '1960' , '1961' , '1962' , '1963', '1964', '1965' , 
+          '1966' , '1967' , '1968', '1969', '1970' , '1970', '1971' , '1972' ,
+          '1973' , '1974' , '1975' , '1976', '1977', '1978' , '1979' , '1980' ,
+          '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', 
+          '1989', '1990', '1991', '1992', '1993', '1994' , '1995', '1996', '1997',
+          '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2016'],
+           axis=1, inplace=True)
+
+
+
+
+
+# In[40]:
+
+G20
+
+
+# In[41]:
+
+#grouping the original dataframe by year to create time series plot
+YearSum = G20.groupby(['Country Name'])['2005', '2006', '2007', '2008' , '2009' , 
+                                        '2010' , '2011' , '2012' , '2013', '2014' , 
+                                       '2015'].mean()
+YearSum
+
+
+# In[42]:
+
+#Time Series plot of G20 Military Spending 
+
+ax = YearSum.plot(figsize=(20, 10), fontsize=13)
+plt.legend(loc='best', fontsize=13)
+ax.set_xlabel('Country Name', fontsize=13)
+ax.set_ylabel('YearSum', fontsize=13)
+
+
+# In[43]:
+
+#heatmap
+
+sns.set(style='white')
+
+plt.figure(figsize=(12,8))
+plt.title('Military Expenditure per G20 Nation: 2005 - 2015')
+sns.heatmap(YearSum.T, mask=YearSum.T.isnull(), annot=True, fmt='.0%');
+
+
+# In[44]:
+
+#Now, onto GDP data
+GDP.dtypes
+
+
+# In[45]:
+
+#delete unneeded columns
+GDP.drop(['Indicator Code', 'Indicator Name' , '1960' , '1961' , '1962' , '1963', '1964', '1965' , 
+          '1966' , '1967' , '1968', '1969', '1970' , '1970', '1971' , '1972' ,
+          '1973' , '1974' , '1975' , '1976', '1977', '1978' , '1979' , '1980' ,
+          '1981', '1982', '1983', '1984', '1985', '1986', '1987', '1988', 
+          '1989', '1990', '1991', '1992', '1993', '1994' , '1995', '1996', '1997',
+          '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2016'],
+           axis=1, inplace=True)
+
+
+
+# In[46]:
+
+GDP.head()
+
+
+# In[47]:
+
+#creating dataframe from the original GDP dataframe of GDP G20 Member Nations 
+GDPG20 = (GDP.loc[GDP['Country Name'].isin(['Argentina' , 'Australia' , 'Brazil', 'Canada' , 
+                                       'China' , 'France' , 'Germany' , 'India' , 'Indonesia' , 
+                                       'Italy', 'Japan',  'Korea, Rep.' , 'Mexico' , 'Russian Federation' , 'Saudi Arabia' , 
+                                       'South Africa' , 'Turkey' , 'United Kingdom' , 'United States' , 'European Union'])])
+
+
+# In[48]:
+
+GDPG20
+
+
+# In[49]:
+
+#grouping the original GDP G20 dataframe by year to create time series plot
+GDPYearSum = GDPG20.groupby(['Country Name'])['2005', '2006', '2007', '2008' , '2009' , 
+                                        '2010' , '2011' , '2012' , '2013', '2014' , 
+                                       '2015'].mean()
+GDPYearSum
+
+
+# In[50]:
+
+#Time Series plot of G20 Military Spending 
+
+ax = GDPYearSum.plot(figsize=(20, 10), fontsize=13)
+plt.legend(loc='best', fontsize=13)
+ax.set_xlabel('GDPYearSum', fontsize=13)
+ax.set_ylabel('Country Name', fontsize=13)
+
+
+# In[51]:
+
+#dataframe multiplying GDP percentage in military spending by overall GDP to convert to whole dollars the per person 
+#military expenditure 
+
+frames = [GDPYearSum*YearSum/100]
+results = pd.concat(frames)
+
+
+# In[52]:
+
+results
+
+
+# In[53]:
+
+#Summary statistics on dollar amont of per GDP military expenditures per annum
+
+results.describe()
+
+
+# In[54]:
+
+#Time series plot of results
+
+ax = results.plot(figsize=(20, 10), fontsize=13)
+plt.legend(loc='best', fontsize=13)
+ax.set_xlabel('GDPYearSum', fontsize=13)
+ax.set_ylabel('Country Name', fontsize=13)
+
+
+# In[71]:
+
+#growth rate as data frame
+
+growth = np.exp(np.diff(np.log(results))) - 1
+
+
+# In[74]:
+
+for index, height in enumerate(results) :
+    print("index " + str(index) + ": " + str(height))
+
+
+# In[75]:
+
+results
+
+
+# In[85]:
+
+results["Growth"] = np.exp(np.diff(np.log(results))) - 1
+
+
+# In[86]:
+
+results
+
+
+# In[87]:
+
+#Time series plot of results with Growth variable
+
+ax = results.plot(figsize=(20, 10), fontsize=13)
+plt.legend(loc='best', fontsize=13)
+ax.set_xlabel('Growth', fontsize=13)
+ax.set_ylabel('Country Name', fontsize=13)
+
+
+# In[91]:
+
+#sorting results dataframe in ascending order and creating bar chart of G20 nations based on growth, in ascending order
+results_sort = results.sort_values(by='Growth', ascending=True).head(21)
+pd.Series(results_sort['Growth']).plot(kind='barh', title='Growth')
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
+
+# In[ ]:
+
+
+
